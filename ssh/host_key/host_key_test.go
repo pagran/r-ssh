@@ -80,7 +80,7 @@ func Test_writeHostKey(t *testing.T) {
 		t.Errorf("writeHostKey() - %s", err)
 	}
 
-	if bytes.Compare(rsaKeyRaw, buffer.Bytes()) != 0 {
+	if !bytes.Equal(rsaKeyRaw, buffer.Bytes()) {
 		t.Errorf("writeHostKey() want %s, got %s", rsaKeyRaw, buffer.String())
 	}
 }
@@ -95,7 +95,7 @@ func Test_readHostKey(t *testing.T) {
 
 	exceptedPublicKey, _ := ssh.NewPublicKey(privateKey.Public())
 
-	if bytes.Compare(signer.PublicKey().Marshal(), exceptedPublicKey.Marshal()) != 0 {
+	if !bytes.Equal(signer.PublicKey().Marshal(), exceptedPublicKey.Marshal()) {
 		t.Errorf("writeHostKey() want %v, got %v", exceptedPublicKey, signer.PublicKey())
 	}
 }

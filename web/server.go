@@ -30,7 +30,7 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 
 	subdomain := string(urlParts[0])
 
-	handler, err := s.sshServer.GetForwardHandler(subdomain)
+	handler, err := s.sshServer.ForwardController().GetForwardHandler(subdomain)
 	if err != nil {
 		ctx.Error(err.Error(), http.StatusBadGateway)
 		return
