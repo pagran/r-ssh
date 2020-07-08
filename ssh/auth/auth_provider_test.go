@@ -1,4 +1,4 @@
-package ssh
+package auth
 
 import (
 	"r-ssh/common"

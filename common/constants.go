@@ -1,4 +1,17 @@
 package common
 
-const DefaultForwardAddr = "default"
+const DefaultForwardAddr = "localhost"
 const DefaultForwardPort = 80
+
+const BannerMessage = `
+ ____       ___  ___  _   _ 
+(  _ \ ___ / __)/ __)( )_( )
+ )   /(___)\__ \\__ \ ) _ ( 
+(_)\_)     (___/(___/(_) (_)
+`
+const ExtensionFingerprint = "pubkey-fp"
+
+const HostKeySize = 2048
+const HostKeyFilePerm = 600
+
+const MessageBufferSize = 16

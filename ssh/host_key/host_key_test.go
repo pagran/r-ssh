@@ -1,4 +1,4 @@
-package ssh
+package host_key
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"golang.org/x/crypto/ssh"
 	"io"
+	"r-ssh/common"
 	"testing"
 )
 
@@ -24,8 +25,8 @@ func Test_generateHostKey(t *testing.T) {
 	}
 
 	keyBitLen := hostKey.Size() * 8
-	if keyBitLen != HostKeySize {
-		t.Errorf("hostKey.Size() got %d, want %d", keyBitLen, HostKeySize)
+	if keyBitLen != common.HostKeySize {
+		t.Errorf("hostKey.Size() got %d, want %d", keyBitLen, common.HostKeySize)
 	}
 }
 

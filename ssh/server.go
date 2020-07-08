@@ -5,6 +5,8 @@ import (
 	"io"
 	"net"
 	"r-ssh/common"
+	"r-ssh/ssh/auth"
+	"r-ssh/ssh/host_key"
 	"strconv"
 	"sync"
 
@@ -19,7 +21,7 @@ type ForwardHandler func(origin net.Addr) (io.ReadWriteCloser, string, error)
 type Server struct {
 	config   *ssh.ServerConfig
 	endpoint string
-	provider AuthProvider
+	provider auth.AuthProvider
 	host     string
 
 	redirectLock sync.Mutex
@@ -56,7 +58,7 @@ func (s *Server) GetForwardHandler(subdomain string) (ForwardHandler, error) {
 
 	handler, ok := s.redirects[subdomain]
 	if !ok {
-		return nil, ErrForwardNotFound
+		return nil, common.ErrForwardNotFound
 	}
 	return handler, nil
 }
@@ -64,12 +66,12 @@ func (s *Server) GetForwardHandler(subdomain string) (ForwardHandler, error) {
 func (s *Server) publicKeyCallback(_ ssh.ConnMetadata, pubKey ssh.PublicKey) (*ssh.Permissions, error) {
 	fingerprint := common.GetFingerprint(pubKey)
 	if !s.provider.Auth(fingerprint) {
-		return nil, ErrAuthNotAllowed
+		return nil, common.ErrAuthNotAllowed
 	}
 
 	return &ssh.Permissions{
 		Extensions: map[string]string{
-			extensionFingerprint: fingerprint,
+			common.ExtensionFingerprint: fingerprint,
 		},
 	}, nil
 }
@@ -91,7 +93,7 @@ func (s *Server) authLogCallback(conn ssh.ConnMetadata, method string, err error
 }
 
 func (s *Server) bannerCallback(ssh.ConnMetadata) string {
-	return BannerMessage
+	return common.BannerMessage
 }
 
 func (s *Server) createForwardHandler(connection Connection, msg portForwardRequest) ForwardHandler {
@@ -125,7 +127,7 @@ func (s *Server) addForwardHandler(conn Connection, subdomain string, handler Fo
 
 	_, ok := s.redirects[subdomain]
 	if ok {
-		return ErrForwardAlreadyBinded
+		return common.ErrForwardAlreadyBinded
 	}
 
 	s.redirects[subdomain] = handler
@@ -150,9 +152,9 @@ func (s *Server) handleForward(conn Connection, payload []byte) ([]byte, error) 
 		return nil, err
 	}
 
-	fingerprint, ok := conn.conn.Permissions.Extensions[extensionFingerprint]
+	fingerprint, ok := conn.conn.Permissions.Extensions[common.ExtensionFingerprint]
 	if !ok {
-		return nil, ErrUnknownFingerprint
+		return nil, common.ErrUnknownFingerprint
 	}
 
 	subdomain := common.MakeSubdomain(fingerprint, msg.Address, msg.Port)
@@ -175,9 +177,9 @@ func (s *Server) handleForwardCancel(conn Connection, payload []byte) ([]byte, e
 		return nil, err
 	}
 
-	fingerprint, ok := conn.conn.Permissions.Extensions[extensionFingerprint]
+	fingerprint, ok := conn.conn.Permissions.Extensions[common.ExtensionFingerprint]
 	if !ok {
-		return nil, ErrUnknownFingerprint
+		return nil, common.ErrUnknownFingerprint
 	}
 
 	subdomain := common.MakeSubdomain(fingerprint, msg.Address, msg.Port)
@@ -241,7 +243,7 @@ func (s *Server) handleChannels(connection Connection, channels <-chan ssh.NewCh
 				if !req.WantReply {
 					continue
 				}
-				err := req.Reply(req.Type == "shell", nil)
+				err := req.Reply(req.Type == "shell" || req.Type == "pty-req", nil)
 				if err != nil {
 					log.WithError(err).Warnln("channel reply failed")
 				}
@@ -289,7 +291,7 @@ func (s *Server) Listen() error {
 
 		connection := Connection{
 			conn:         conn,
-			messages:     make(chan string, MessageBufferSize),
+			messages:     make(chan string, common.MessageBufferSize),
 			shutdownChan: make(chan struct{}),
 			subdomains:   make(map[string]struct{}),
 			log:          connectionLog,
@@ -314,8 +316,8 @@ func (s *Server) Listen() error {
 	}
 }
 
-func NewServer(endpoint, host, hostKey string, provider AuthProvider) (*Server, error) {
-	key, err := loadOrGenerateHostKey(hostKey)
+func NewServer(endpoint, host, hostKey string, provider auth.AuthProvider) (*Server, error) {
+	key, err := host_key.LoadOrGenerateHostKey(hostKey)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package ssh
+package host_key
 
 import (
 	"crypto/rand"
@@ -8,12 +8,13 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"r-ssh/common"
 
 	"golang.org/x/crypto/ssh"
 )
 
 func generateHostKey() (*rsa.PrivateKey, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, HostKeySize)
+	privateKey, err := rsa.GenerateKey(rand.Reader, common.HostKeySize)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +46,7 @@ func readHostKey(reader io.Reader) (ssh.Signer, error) {
 }
 
 func createHostKey(hostKey string) (ssh.Signer, error) {
-	f, err := os.OpenFile(hostKey, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, HostKeyFilePerm)
+	f, err := os.OpenFile(hostKey, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, common.HostKeyFilePerm)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func createHostKey(hostKey string) (ssh.Signer, error) {
 	return ssh.NewSignerFromKey(privateKey)
 }
 
-func loadOrGenerateHostKey(hostKey string) (ssh.Signer, error) {
+func LoadOrGenerateHostKey(hostKey string) (ssh.Signer, error) {
 	info, err := os.Stat(hostKey)
 	if os.IsNotExist(err) {
 		return createHostKey(hostKey)
@@ -74,7 +75,7 @@ func loadOrGenerateHostKey(hostKey string) (ssh.Signer, error) {
 		return nil, err
 	}
 	if info.IsDir() {
-		return nil, ErrHostKeyIsDirectory
+		return nil, common.ErrHostKeyIsDirectory
 	}
 
 	f, err := os.Open(hostKey)

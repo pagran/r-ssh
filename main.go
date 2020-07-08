@@ -2,6 +2,7 @@ package main
 
 import (
 	"r-ssh/ssh"
+	"r-ssh/ssh/auth"
 	"r-ssh/web"
 
 	"github.com/kelseyhightower/envconfig"
@@ -24,11 +25,11 @@ func main() {
 	logrus.SetLevel(logLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{})
 
-	var authProvider ssh.AuthProvider
+	var authProvider auth.AuthProvider
 	if len(cfg.PublicKeyWhitelist) == 0 {
-		authProvider = ssh.DefaultAuthProvider
+		authProvider = auth.DefaultAuthProvider
 	} else {
-		authProvider = ssh.NewWhitelistAuthProvider(cfg.PublicKeyWhitelist)
+		authProvider = auth.NewWhitelistAuthProvider(cfg.PublicKeyWhitelist)
 	}
 
 	sshServer, err := ssh.NewServer(cfg.SSHEndpoint, cfg.Host, cfg.HostKey, authProvider)

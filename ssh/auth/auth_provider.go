@@ -1,4 +1,4 @@
-package ssh
+package auth
 
 type AuthProvider interface {
 	Auth(string) bool
