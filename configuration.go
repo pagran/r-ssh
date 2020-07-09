@@ -10,5 +10,6 @@ type Configuration struct {
 
 	LogLevel string `default:"info" split_words:"true"`
 
-	Debug bool
+	Debug       bool
+	WebHideInfo bool
 }

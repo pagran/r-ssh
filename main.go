@@ -43,7 +43,7 @@ func main() {
 		}
 	}()
 
-	webServer := web.NewServer(sshServer, cfg.WebEndpoint, cfg.Host)
+	webServer := web.NewServer(sshServer, cfg.WebEndpoint, cfg.Host, cfg.WebHideInfo)
 	if err = webServer.Listen(); err != nil {
 		logrus.WithError(err).Fatalln("ssh server listen failed")
 	}

@@ -3,14 +3,13 @@ package ssh
 import (
 	"fmt"
 	"golang.org/x/crypto/ssh"
-	"io"
 	"net"
 	"r-ssh/common"
 	"strconv"
 	"sync"
 )
 
-type ForwardHandler func(origin net.Addr) (io.ReadWriteCloser, string, error)
+type ForwardHandler func(origin net.Addr) (net.Conn, string, error)
 
 type ForwardController struct {
 	redirectLock  sync.Mutex
@@ -38,7 +37,7 @@ func (f *ForwardController) HandleRequest(connection *ConnectionWrapper, req *ss
 }
 
 func (f *ForwardController) createForwardHandler(connection *ConnectionWrapper, address string, port uint32) ForwardHandler {
-	return func(origin net.Addr) (io.ReadWriteCloser, string, error) {
+	return func(origin net.Addr) (net.Conn, string, error) {
 		originAddr, originPortRaw, _ := net.SplitHostPort(origin.String())
 		originPort, err := strconv.Atoi(originPortRaw)
 		if err != nil {
@@ -58,7 +57,7 @@ func (f *ForwardController) createForwardHandler(connection *ConnectionWrapper, 
 			return nil, address, err
 		}
 		go ssh.DiscardRequests(reqs)
-		return channel, address, nil
+		return NewChannelConn(connection.Connection.LocalAddr(), connection.Connection.RemoteAddr(), channel), address, nil
 	}
 }
 
@@ -95,7 +94,8 @@ func (f *ForwardController) removeForwardHandler(conn *ConnectionWrapper, subdom
 func (f *ForwardController) handleForward(conn *ConnectionWrapper, address string, port uint32) (interface{}, error) {
 	subdomain := common.MakeSubdomain(conn.Fingerprint, address, port)
 
-	err := f.addForwardHandler(conn, subdomain, f.createForwardHandler(conn, address, port))
+	forwardHandler := f.createForwardHandler(conn, address, port)
+	err := f.addForwardHandler(conn, subdomain, forwardHandler)
 	if err != nil {
 		_, _ = conn.Terminal.WriteString(fmt.Sprintf("forward \"%s:%d\" failed: \"%s\"\r\n", address, port, err))
 		return nil, err
