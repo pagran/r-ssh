@@ -13,8 +13,7 @@ import (
 var logger = logrus.WithField("component", "web")
 
 type Server struct {
-	host     string
-	endpoint string
+	host string
 
 	sshServer *ssh.Server
 
@@ -80,18 +79,20 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 	if !s.hideInfo {
 		ctx.Response.Header.Set("X-Source", conn.RemoteAddr().String())
 	}
-
 }
 
-func (s *Server) Listen() error {
-	return fasthttp.ListenAndServe(s.endpoint, s.requestHandler)
+func (s *Server) ListenTLS(endpoint, certFile, keyFile string) error {
+	return fasthttp.ListenAndServeTLS(endpoint, certFile, keyFile, s.requestHandler)
 }
 
-func NewServer(sshServer *ssh.Server, endpoint, host string, hideInfo bool) *Server {
+func (s *Server) Listen(endpoint string) error {
+	return fasthttp.ListenAndServe(endpoint, s.requestHandler)
+}
+
+func NewServer(sshServer *ssh.Server, host string, hideInfo bool) *Server {
 	return &Server{
 		hideInfo:  hideInfo,
 		sshServer: sshServer,
-		endpoint:  endpoint,
 		host:      host,
 		clientPool: sync.Pool{
 			New: func() interface{} {

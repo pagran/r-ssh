@@ -43,8 +43,17 @@ func main() {
 		}
 	}()
 
-	webServer := web.NewServer(sshServer, cfg.WebEndpoint, cfg.Host, cfg.WebHideInfo)
-	if err = webServer.Listen(); err != nil {
-		logrus.WithError(err).Fatalln("ssh server listen failed")
+	webServer := web.NewServer(sshServer, cfg.Host, cfg.WebHideInfo)
+
+	if cfg.CertFile != "" && cfg.KeyFile != "" {
+		go func() {
+			if err = webServer.ListenTLS(cfg.SslWebEndpoint, cfg.CertFile, cfg.KeyFile); err != nil {
+				logrus.WithError(err).Fatalln("ssl web server listen failed")
+			}
+		}()
+	}
+
+	if err = webServer.Listen(cfg.WebEndpoint); err != nil {
+		logrus.WithError(err).Fatalln("web server listen failed")
 	}
 }

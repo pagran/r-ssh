@@ -13,7 +13,8 @@ WORKDIR /usr/app
 
 COPY --from=builder /usr/src/app/main ./main
 
+EXPOSE 22
 EXPOSE 80
-EXPOSE 433
+EXPOSE 443
 
 CMD ["./main"]
