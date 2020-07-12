@@ -1,6 +1,7 @@
 package main
 
 import (
+	"r-ssh/common"
 	"r-ssh/ssh"
 	"r-ssh/ssh/auth"
 	"r-ssh/web"
@@ -9,11 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const applicationName = "rssh"
-
 func main() {
 	var cfg Configuration
-	err := envconfig.Process(applicationName, &cfg)
+	err := envconfig.Process(common.ApplicationName, &cfg)
 	if err != nil {
 		logrus.WithError(err).Fatal("process configuration failed")
 	}

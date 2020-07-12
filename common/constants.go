@@ -3,6 +3,7 @@ package common
 const DefaultForwardAddr = "localhost"
 const DefaultForwardPort = 80
 
+const ApplicationName = "rssh"
 const BannerMessage = `
  ____       ___  ___  _   _ 
 (  _ \ ___ / __)/ __)( )_( )

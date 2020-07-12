@@ -6,6 +6,7 @@ import (
 	"github.com/valyala/fasthttp"
 	"net"
 	"net/http"
+	"r-ssh/common"
 	"r-ssh/ssh"
 	"sync"
 )
@@ -68,6 +69,7 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 
 	req := ctx.Request
 
+	req.Header.Set("Via", common.ApplicationName)
 	req.Header.Set("X-Forwarded-For", ctx.RemoteIP().String())
 	req.Header.Set("X-Forwarded-Host", string(req.Host()))
 	if ctx.IsTLS() {
