@@ -43,7 +43,7 @@ func main() {
 		}
 	}()
 
-	webServer := web.NewServer(sshServer, cfg.Host, cfg.WebHideInfo)
+	webServer := web.NewServer(sshServer, cfg.Host, cfg.WebHideInfo, cfg.SslRedirect)
 
 	if cfg.CertFile != "" && cfg.KeyFile != "" {
 		go func() {

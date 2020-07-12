@@ -17,8 +17,9 @@ type Server struct {
 
 	sshServer *ssh.Server
 
-	clientPool sync.Pool
-	hideInfo   bool
+	clientPool  sync.Pool
+	hideInfo    bool
+	sslRedirect bool
 }
 
 var domainSeparator = []byte(".")
@@ -37,6 +38,14 @@ func (s *Server) releaseClient(client *fasthttp.Client) {
 }
 
 func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
+	if s.sslRedirect && !ctx.IsTLS() {
+		uri := ctx.Request.URI()
+		uri.SetScheme("https")
+
+		ctx.Response.Header.Set("Location", string(uri.FullURI()))
+		ctx.SetStatusCode(http.StatusPermanentRedirect)
+		return
+	}
 	urlParts := bytes.Split(ctx.Host(), domainSeparator)
 	if len(urlParts) != 3 {
 		ctx.Error("subdomain required", http.StatusBadRequest)
@@ -44,7 +53,6 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 	}
 
 	subdomain := string(urlParts[0])
-
 	handler, err := s.sshServer.ForwardController().GetForwardHandler(subdomain)
 	if err != nil {
 		ctx.Error(err.Error(), http.StatusBadGateway)
@@ -58,30 +66,32 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	ctx.Request.Header.Set("X-Forwarded-For", ctx.RemoteIP().String())
-	ctx.Request.Header.Set("X-Forwarded-Host", string(ctx.Request.Host()))
+	req := ctx.Request
+
+	req.Header.Set("X-Forwarded-For", ctx.RemoteIP().String())
+	req.Header.Set("X-Forwarded-Host", string(req.Host()))
 	if ctx.IsTLS() {
-		ctx.Request.Header.Set("X-Forwarded-Proto", "https")
+		req.Header.Set("X-Forwarded-Proto", "https")
 	} else {
-		ctx.Request.Header.Set("X-Forwarded-Proto", "http")
+		req.Header.Set("X-Forwarded-Proto", "http")
 	}
 
-	ctx.Request.SetHost(info.Host)
+	req.SetHost(info.Host)
 	if info.RewriteOrigin {
-		origin := ctx.Request.Header.Peek("Origin")
+		origin := req.Header.Peek("Origin")
 		if origin != nil {
-			ctx.Request.Header.Set("Origin", info.Host)
+			req.Header.Set("Origin", info.Host)
 		}
 	}
 
 	if info.Https {
-		ctx.Request.URI().SetScheme("https")
+		req.URI().SetScheme("https")
 	} else {
-		ctx.Request.URI().SetScheme("http")
+		req.URI().SetScheme("http")
 	}
 
 	client := s.acquireClient(conn)
-	err = client.Do(&ctx.Request, &ctx.Response)
+	err = client.Do(&req, &ctx.Response)
 	s.releaseClient(client)
 	if err != nil {
 		logger.WithError(err).Warnln("forward request failed")
@@ -102,11 +112,12 @@ func (s *Server) Listen(endpoint string) error {
 	return fasthttp.ListenAndServe(endpoint, s.requestHandler)
 }
 
-func NewServer(sshServer *ssh.Server, host string, hideInfo bool) *Server {
+func NewServer(sshServer *ssh.Server, host string, hideInfo, sslRedirect bool) *Server {
 	return &Server{
-		hideInfo:  hideInfo,
-		sshServer: sshServer,
-		host:      host,
+		hideInfo:    hideInfo,
+		sshServer:   sshServer,
+		host:        host,
+		sslRedirect: sslRedirect,
 		clientPool: sync.Pool{
 			New: func() interface{} {
 				return &fasthttp.Client{

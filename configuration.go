@@ -5,6 +5,7 @@ type Configuration struct {
 
 	WebEndpoint    string `default:"0.0.0.0:80" split_words:"true"`
 	SslWebEndpoint string `default:"0.0.0.0:443" split_words:"true"`
+	SslRedirect    bool   `split_words:"true" default:"true"`
 
 	CertFile string `split_words:"true"`
 	KeyFile  string `split_words:"true"`
