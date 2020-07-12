@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-type ForwardHandler func(origin net.Addr) (net.Conn, string, error)
+type ForwardHandler func(origin net.Addr) (net.Conn, *common.ForwardInfo, error)
 
 type ForwardController struct {
 	redirectLock  sync.Mutex
@@ -36,17 +36,17 @@ func (f *ForwardController) HandleRequest(connection *ConnectionWrapper, req *ss
 	}
 }
 
-func (f *ForwardController) createForwardHandler(connection *ConnectionWrapper, address string, port uint32) ForwardHandler {
-	return func(origin net.Addr) (net.Conn, string, error) {
+func (f *ForwardController) createForwardHandler(connection *ConnectionWrapper, info *common.ForwardInfo) ForwardHandler {
+	return func(origin net.Addr) (net.Conn, *common.ForwardInfo, error) {
 		originAddr, originPortRaw, _ := net.SplitHostPort(origin.String())
 		originPort, err := strconv.Atoi(originPortRaw)
 		if err != nil {
-			return nil, address, err
+			return nil, info, err
 		}
 
 		payload := ssh.Marshal(&remoteForwardData{
-			DestAddress:   address,
-			DestPort:      port,
+			DestAddress:   info.Address,
+			DestPort:      info.Port,
 			OriginAddress: originAddr,
 			OriginPort:    uint32(originPort),
 		})
@@ -54,10 +54,10 @@ func (f *ForwardController) createForwardHandler(connection *ConnectionWrapper, 
 		channel, reqs, err := connection.Connection.OpenChannel(forwardedChannelType, payload)
 		if err != nil {
 			_ = connection.Connection.Close()
-			return nil, address, err
+			return nil, info, err
 		}
 		go ssh.DiscardRequests(reqs)
-		return NewChannelConn(connection.Connection.LocalAddr(), connection.Connection.RemoteAddr(), channel), address, nil
+		return NewChannelConn(connection.Connection.LocalAddr(), connection.Connection.RemoteAddr(), channel), info, nil
 	}
 }
 
@@ -92,16 +92,20 @@ func (f *ForwardController) removeForwardHandler(conn *ConnectionWrapper, subdom
 }
 
 func (f *ForwardController) handleForward(conn *ConnectionWrapper, address string, port uint32) (interface{}, error) {
-	subdomain := common.MakeSubdomain(conn.Fingerprint, address, port)
+	if port == 0 {
+		_, _ = conn.Terminal.WriteString(fmt.Sprintf("forward \"%s:%d\" failed: \"%s\"\r\n", address, port, common.ErrPortNotAllowed))
+		return nil, common.ErrPortNotAllowed
+	}
+	forwardInfo := common.BuildForwardInfo(conn.Fingerprint, address, port)
 
-	forwardHandler := f.createForwardHandler(conn, address, port)
-	err := f.addForwardHandler(conn, subdomain, forwardHandler)
+	forwardHandler := f.createForwardHandler(conn, forwardInfo)
+	err := f.addForwardHandler(conn, forwardInfo.Subdomain, forwardHandler)
 	if err != nil {
 		_, _ = conn.Terminal.WriteString(fmt.Sprintf("forward \"%s:%d\" failed: \"%s\"\r\n", address, port, err))
 		return nil, err
 	}
 
-	_, _ = conn.Terminal.WriteString(fmt.Sprintf("forward \"%s:%d\" to \"%s.%s\"\r\n", address, port, subdomain, f.host))
+	_, _ = conn.Terminal.WriteString(fmt.Sprintf("forward \"%s:%d\" to \"%s.%s\"\r\n", address, port, forwardInfo.Subdomain, f.host))
 	return portForwardResponse{Port: port}, nil
 }
 
@@ -113,8 +117,8 @@ func (f *ForwardController) handleForwardCancel(conn *ConnectionWrapper, payload
 		return nil, err
 	}
 
-	subdomain := common.MakeSubdomain(conn.Fingerprint, msg.Address, msg.Port)
-	f.removeForwardHandler(conn, subdomain)
+	info := common.BuildForwardInfo(conn.Fingerprint, msg.Address, msg.Port)
+	f.removeForwardHandler(conn, info.Subdomain)
 	return nil, nil
 }
 

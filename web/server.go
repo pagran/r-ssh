@@ -51,7 +51,7 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	conn, host, err := handler(ctx.RemoteAddr())
+	conn, info, err := handler(ctx.RemoteAddr())
 	if err != nil {
 		logger.WithError(err).Warnln("create forward failed")
 		ctx.Error(err.Error(), http.StatusBadGateway)
@@ -65,7 +65,20 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 	} else {
 		ctx.Request.Header.Set("X-Forwarded-Proto", "http")
 	}
-	ctx.Request.SetHost(host)
+
+	ctx.Request.SetHost(info.Host)
+	if info.RewriteOrigin {
+		origin := ctx.Request.Header.Peek("Origin")
+		if origin != nil {
+			ctx.Request.Header.Set("Origin", info.Host)
+		}
+	}
+
+	if info.Https {
+		ctx.Request.URI().SetScheme("https")
+	} else {
+		ctx.Request.URI().SetScheme("http")
+	}
 
 	client := s.acquireClient(conn)
 	err = client.Do(&ctx.Request, &ctx.Response)
