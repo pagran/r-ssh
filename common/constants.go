@@ -15,5 +15,3 @@ const ExtensionFingerprint = "pubkey-fp"
 
 const HostKeySize = 2048
 const HostKeyFilePerm = 600
-
-const MessageBufferSize = 16
