@@ -105,7 +105,7 @@ func (f *ForwardController) handleForward(conn *ConnectionWrapper, address strin
 		return nil, err
 	}
 
-	_, _ = conn.Terminal.WriteString(fmt.Sprintf("forward \"%s:%d\" to \"%s.%s\"\r\n", address, port, forwardInfo.Subdomain, f.host))
+	_, _ = conn.Terminal.WriteString(fmt.Sprintf("forward \"%s:%d\" to \"https://%s.%s/\"\r\n", address, port, forwardInfo.Subdomain, f.host))
 	return portForwardResponse{Port: port}, nil
 }
 
