@@ -1,30 +1,30 @@
 package auth
 
-type AuthProvider interface {
+type Provider interface {
 	Auth(string) bool
 }
 
-type defaultAuthProvider struct{}
+type defaultProvider struct{}
 
-func (*defaultAuthProvider) Auth(string) bool {
+func (*defaultProvider) Auth(string) bool {
 	return true
 }
 
-var DefaultAuthProvider = &defaultAuthProvider{}
+var DefaultAuthProvider = &defaultProvider{}
 
-type WhitelistAuthProvider struct {
+type WhitelistProvider struct {
 	whitelist map[string]struct{}
 }
 
-func (w *WhitelistAuthProvider) Auth(fingerprint string) bool {
+func (w *WhitelistProvider) Auth(fingerprint string) bool {
 	_, ok := w.whitelist[fingerprint]
 	return ok
 }
 
-func NewWhitelistAuthProvider(publicKeyWhitelist []string) *WhitelistAuthProvider {
+func NewWhitelistAuthProvider(publicKeyWhitelist []string) *WhitelistProvider {
 	whitelist := make(map[string]struct{})
 	for _, s := range publicKeyWhitelist {
 		whitelist[s] = struct{}{}
 	}
-	return &WhitelistAuthProvider{whitelist: whitelist}
+	return &WhitelistProvider{whitelist: whitelist}
 }

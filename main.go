@@ -24,7 +24,7 @@ func main() {
 	logrus.SetLevel(logLevel)
 	logrus.SetFormatter(&logrus.TextFormatter{})
 
-	var authProvider auth.AuthProvider
+	var authProvider auth.Provider
 	if len(cfg.PublicKeyWhitelist) == 0 {
 		authProvider = auth.DefaultAuthProvider
 	} else {

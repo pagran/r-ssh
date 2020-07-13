@@ -14,7 +14,7 @@ import (
 type Server struct {
 	config   *ssh.ServerConfig
 	endpoint string
-	provider auth.AuthProvider
+	provider auth.Provider
 	host     string
 
 	requestHandlers map[string]Controller
@@ -128,7 +128,7 @@ func (s *Server) Listen() error {
 	}
 }
 
-func NewServer(endpoint, host, hostKey string, provider auth.AuthProvider) (*Server, error) {
+func NewServer(endpoint, host, hostKey string, provider auth.Provider) (*Server, error) {
 	key, err := host_key.LoadOrGenerateHostKey(hostKey)
 	if err != nil {
 		return nil, err
