@@ -22,6 +22,7 @@ func TestBuildForwardInfo(t *testing.T) {
 			args: args{fingerprint: "f", host: DefaultForwardAddr, port: DefaultForwardPort},
 			want: &ForwardInfo{
 				ForwardFlags: defaultFlags,
+				Address:      DefaultForwardAddr,
 				Host:         DefaultForwardAddr,
 				Port:         DefaultForwardPort,
 				Subdomain:    "f",
@@ -35,6 +36,7 @@ func TestBuildForwardInfo(t *testing.T) {
 					Https:         true,
 					RewriteOrigin: true,
 				},
+				Address:   DefaultForwardAddr + flagDelimiter + string(httpsFlag) + string(rewriteOriginFlag),
 				Host:      DefaultForwardAddr,
 				Port:      DefaultForwardPort,
 				Subdomain: "f",
@@ -45,6 +47,7 @@ func TestBuildForwardInfo(t *testing.T) {
 			args: args{fingerprint: "f", host: DefaultForwardAddr, port: DefaultForwardPort + 1},
 			want: &ForwardInfo{
 				ForwardFlags: defaultFlags,
+				Address:      DefaultForwardAddr,
 				Host:         DefaultForwardAddr,
 				Port:         DefaultForwardPort + 1,
 				Subdomain:    strconv.Itoa(DefaultForwardPort+1) + "-f",
@@ -55,6 +58,7 @@ func TestBuildForwardInfo(t *testing.T) {
 			args: args{fingerprint: "f", host: DefaultForwardAddr + "A", port: DefaultForwardPort},
 			want: &ForwardInfo{
 				ForwardFlags: defaultFlags,
+				Address:      DefaultForwardAddr + "A",
 				Host:         DefaultForwardAddr + "A",
 				Port:         DefaultForwardPort,
 				Subdomain:    DefaultForwardAddr + "A" + "-f",
@@ -65,6 +69,7 @@ func TestBuildForwardInfo(t *testing.T) {
 			args: args{fingerprint: "f", host: "test", port: 111},
 			want: &ForwardInfo{
 				ForwardFlags: defaultFlags,
+				Address:      "test",
 				Host:         "test",
 				Port:         111,
 				Subdomain:    "test-111-f",
@@ -78,6 +83,7 @@ func TestBuildForwardInfo(t *testing.T) {
 					Https:         true,
 					RewriteOrigin: true,
 				},
+				Address:   "test" + flagDelimiter + string(httpsFlag) + string(rewriteOriginFlag),
 				Host:      "test",
 				Port:      111,
 				Subdomain: "test-111-f",
@@ -88,6 +94,7 @@ func TestBuildForwardInfo(t *testing.T) {
 			args: args{fingerprint: "f", host: "test%^&*()=", port: 111},
 			want: &ForwardInfo{
 				ForwardFlags: defaultFlags,
+				Address:      "test%^&*()=",
 				Host:         "test%^&*()=",
 				Port:         111,
 				Subdomain:    "test_______-111-f",
