@@ -5,6 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/pagran/r-ssh)](https://goreportcard.com/report/github.com/pagran/r-ssh)
 ![GitHub go.mod Go version (subfolder of monorepo)](https://img.shields.io/github/go-mod/go-version/pagran/r-ssh)
 ![Uptime Robot status](https://img.shields.io/uptimerobot/status/m785561650-f777533a7adf78012658518f?label=public%20server)
+![GitHub](https://img.shields.io/github/license/pagran/r-ssh)
 
 ## What can the program do?
 This program allows you to quickly and safely forward local port without configuring the infrastructure.
