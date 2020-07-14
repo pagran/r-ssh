@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/valyala/fasthttp"
 	"net"
@@ -9,6 +10,7 @@ import (
 	"r-ssh/common"
 	"r-ssh/ssh"
 	"sync"
+	"time"
 )
 
 var logger = logrus.WithField("component", "web")
@@ -21,6 +23,8 @@ type Server struct {
 	clientPool  sync.Pool
 	hideInfo    bool
 	sslRedirect bool
+
+	startTime time.Time
 }
 
 var domainSeparator = []byte(".")
@@ -36,6 +40,11 @@ func (s *Server) acquireClient(conn net.Conn) *fasthttp.Client {
 func (s *Server) releaseClient(client *fasthttp.Client) {
 	client.Dial = nil
 	s.clientPool.Put(client)
+}
+
+func (s *Server) statusHandler(ctx *fasthttp.RequestCtx) {
+	_, _ = fmt.Fprintf(ctx, "uptime: %s", time.Since(s.startTime))
+	ctx.SetStatusCode(http.StatusOK)
 }
 
 func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
@@ -54,6 +63,11 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 	}
 
 	subdomain := string(urlParts[0])
+	if subdomain == "status" {
+		s.statusHandler(ctx)
+		return
+	}
+
 	handler, err := s.sshServer.ForwardController().GetForwardHandler(subdomain)
 	if err != nil {
 		ctx.Error(err.Error(), http.StatusBadGateway)
@@ -107,10 +121,12 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 }
 
 func (s *Server) ListenTLS(endpoint, certFile, keyFile string) error {
+	s.startTime = time.Now()
 	return fasthttp.ListenAndServeTLS(endpoint, certFile, keyFile, s.requestHandler)
 }
 
 func (s *Server) Listen(endpoint string) error {
+	s.startTime = time.Now()
 	return fasthttp.ListenAndServe(endpoint, s.requestHandler)
 }
 

@@ -1,5 +1,6 @@
 # R-SSH
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/pagran/r-ssh)
+![Uptime Robot status](https://img.shields.io/uptimerobot/status/m785561650-f777533a7adf78012658518f?label=public%20server%20status)
 ![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pagran/r-ssh)
 ![GitHub go.mod Go version (subfolder of monorepo)](https://img.shields.io/github/go-mod/go-version/pagran/r-ssh)
 
