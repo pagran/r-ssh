@@ -69,4 +69,16 @@ ssh -R example.com+s:80:example.com:443 r-ssh.me
 
 
 # Self-hosted
-// TODO
+
+### Docker
+
+Without ssl:
+```sh
+docker run -d --restart always --name rssh -p 22:22 -p 80:80 -e RSSH_HOST=r-ssh.me -e RSSH_HOST_KEY=/mnt/id_rsa -v /root/r-ssh/:/mnt pagran/r-ssh:latest
+```
+
+With ssl (wildcard certificate required):
+
+```sh
+docker run -d --restart always --name rssh -p 22:22 -p 80:80 -p 443:443 -e RSSH_HOST=r-ssh.me -e RSSH_HOST_KEY=/mnt/id_rsa -e RSSH_CERT_FILE=/mnt/r-ssh.me.cer -e RSSH_KEY_FILE=/mnt/r-ssh.me.key -v /root/.acme.sh/r-ssh.me/:/mnt pagran/r-ssh:latest
+```
