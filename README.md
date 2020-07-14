@@ -2,6 +2,7 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/pagran/r-ssh/Lint%20and%20test)
 ![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/pagran/r-ssh)
 ![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pagran/r-ssh)
+[![Go Report Card](https://goreportcard.com/badge/github.com/pagran/r-ssh)](https://goreportcard.com/report/github.com/pagran/r-ssh)
 ![GitHub go.mod Go version (subfolder of monorepo)](https://img.shields.io/github/go-mod/go-version/pagran/r-ssh)
 ![Uptime Robot status](https://img.shields.io/uptimerobot/status/m785561650-f777533a7adf78012658518f?label=public%20server)
 
