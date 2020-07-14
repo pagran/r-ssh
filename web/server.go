@@ -67,7 +67,7 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	req := ctx.Request
+	req := &ctx.Request
 
 	req.Header.Set("Via", common.ApplicationName)
 	req.Header.Set("X-Forwarded-For", ctx.RemoteIP().String())
@@ -93,7 +93,7 @@ func (s *Server) requestHandler(ctx *fasthttp.RequestCtx) {
 	}
 
 	client := s.acquireClient(conn)
-	err = client.Do(&req, &ctx.Response)
+	err = client.Do(req, &ctx.Response)
 	s.releaseClient(client)
 	if err != nil {
 		logger.WithError(err).Warnln("forward request failed")
