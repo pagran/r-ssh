@@ -1,4 +1,7 @@
 # R-SSH
+![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/pagran/r-ssh)
+![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pagran/r-ssh)
+![GitHub go.mod Go version (subfolder of monorepo)](https://img.shields.io/github/go-mod/go-version/pagran/r-ssh)
 
 ## What can the program do?
 This program allows you to quickly and safely forward local port without configuring the infrastructure.
