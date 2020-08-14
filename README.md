@@ -23,7 +23,7 @@ Features:
 2. Public key (for authorization).
 3. Running **r-ssh** server (you can use public server - **r-ssh.me**).
 
-##How to use?
+## How to use?
 
 ### Syntax
 
