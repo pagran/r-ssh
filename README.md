@@ -21,7 +21,7 @@ Features:
 
 1. SSH client.
 2. Public key (for authorization).
-3. Running **r-ssh** server (you can use public server - **r-ssh.me**).
+3. Running **r-ssh** server
 
 ## How to use?
 
@@ -29,7 +29,7 @@ Features:
 
 
 ```sh
-ssh -R [domain[+flags]:]<port>:target_domain:target_port r-ssh.me
+ssh -R [domain[+flags]:]<port>:target_domain:target_port <host>
 ```
 
 **domain** - The domain to which requests will be redirected (`Host` and `Origin` headers will be replaced by this value if the corresponding flag is enabled) _[optional]_.
@@ -51,17 +51,17 @@ Available flags:
 Forward local http://localhost:8080/ to web
 
 ```sh
-ssh -R 80:localhost:8080 r-ssh.me
+ssh -R 80:localhost:8080 <host>
 
-# forward "localhost:80" to "https://<fingeprint>.r-ssh.me/"
+# forward "localhost:80" to "https://<fingeprint>.<host>/"
 ```
 
 Forward https://example.com:443/ to web with automatic `Host` correction
 
 ```sh
-ssh -R example.com+s:80:example.com:443 r-ssh.me
+ssh -R example.com+s:80:example.com:443 <host>
 
-# forward "example.com+s:80" to "https://example_com-<fingeprint>.r-ssh.me/"
+# forward "example.com+s:80" to "https://example_com-<fingeprint>.<host>/"
 ```
 
 
@@ -75,11 +75,11 @@ ssh -R example.com+s:80:example.com:443 r-ssh.me
 
 Without ssl:
 ```sh
-docker run -d --restart always --name rssh -p 22:22 -p 80:80 -e RSSH_HOST=r-ssh.me -e RSSH_HOST_KEY=/mnt/id_rsa -v /root/r-ssh/:/mnt pagran/r-ssh:latest
+docker run -d --restart always --name rssh -p 22:22 -p 80:80 -e RSSH_HOST=<host> -e RSSH_HOST_KEY=/mnt/id_rsa -v /root/r-ssh/:/mnt pagran/r-ssh:latest
 ```
 
 With ssl (wildcard certificate required):
 
 ```sh
-docker run -d --restart always --name rssh -p 22:22 -p 80:80 -p 443:443 -e RSSH_HOST=r-ssh.me -e RSSH_HOST_KEY=/mnt/id_rsa -e RSSH_CERT_FILE=/mnt/r-ssh.me.cer -e RSSH_KEY_FILE=/mnt/r-ssh.me.key -v /root/.acme.sh/r-ssh.me/:/mnt pagran/r-ssh:latest
+docker run -d --restart always --name rssh -p 22:22 -p 80:80 -p 443:443 -e RSSH_HOST=<host> -e RSSH_HOST_KEY=/mnt/id_rsa -e RSSH_CERT_FILE=/mnt/<host>.cer -e RSSH_KEY_FILE=/mnt/<host>.key -v /root/.acme.sh/<host>/:/mnt pagran/r-ssh:latest
 ```
